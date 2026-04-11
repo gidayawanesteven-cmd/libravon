@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Libravon — Book</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0d0d0d;--surface:#161616;--surface2:#1f1f1f;--border:#2a2a2a;--text:#f0f0f0;--muted:#888;--muted2:#555;--coral:#ff5c5c;--coral-glow:rgba(255,92,92,0.18);--lime:#a8ff3e;--sky:#3eceff;--gold:#ffd84d;--radius:12px;--radius-lg:20px}
+    html{scroll-behavior:smooth}
+    body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+    nav{position:sticky;top:0;z-index:100;background:rgba(13,13,13,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.08em;background:linear-gradient(90deg,var(--coral),var(--gold),var(--lime));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .nav-back{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:var(--muted);padding:7px 14px;border-radius:8px;border:1px solid var(--border);transition:all .18s}
+    .nav-back:hover{color:var(--text);border-color:var(--muted)}
+    .nav-back svg{width:14px;height:14px}
+
+    .book-backdrop{position:relative;padding:56px 32px 0;overflow:hidden;min-height:360px}
+    .backdrop-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(60px) brightness(.25) saturate(1.8);transform:scale(1.1);z-index:0}
+    .backdrop-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,var(--bg) 100%);z-index:1}
+
+    .book-hero{position:relative;z-index:2;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:220px 1fr;gap:40px;align-items:flex-start;padding-bottom:40px}
+    .book-cover-wrap{width:220px;aspect-ratio:2/3;border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7);animation:fadeUp .5s ease both}
+    .book-cover-wrap img,.cover-ph-main{width:100%;height:100%;object-fit:cover;display:block}
+    .cover-ph-main{display:flex;align-items:flex-end;padding:18px}
+    .cover-ph-main span{font-family:'Lora',serif;font-size:1rem;font-style:italic;color:rgba(255,255,255,.85);line-height:1.4}
+    .book-info-col{animation:fadeUp .5s .1s ease both}
+    .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);margin-bottom:14px}
+    .breadcrumb a{color:var(--muted);transition:color .15s}.breadcrumb a:hover{color:var(--coral)}.breadcrumb span{color:var(--muted2)}
+    .book-genres-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .genre-pill{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;border:1px solid}
+    .book-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,5vw,3.8rem);letter-spacing:.02em;line-height:1;margin-bottom:8px}
+    .book-author{font-size:1rem;color:var(--muted);margin-bottom:20px}.book-author span{color:var(--sky);font-weight:700}
+    .stats-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+    .stat-chip{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.82rem;font-weight:700}
+    .sc-val{color:var(--text)}.sc-lbl{color:var(--muted);font-weight:600}
+    .status-pill{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:8px 14px;border-radius:10px;border:1px solid}
+    .status-pill.ongoing{background:rgba(168,255,62,.1);color:var(--lime);border-color:rgba(168,255,62,.3)}
+    .status-pill.completed{background:rgba(62,206,255,.1);color:var(--sky);border-color:rgba(62,206,255,.3)}
+    .book-desc{font-family:'Lora',serif;font-size:.95rem;line-height:1.8;color:#ccc;max-width:580px;margin-bottom:24px}
+    .tags-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+    .tag-chip{font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--muted)}
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:white;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;padding:13px 28px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 6px 24px rgba(255,92,92,.35);transition:transform .18s,box-shadow .18s}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(255,92,92,.45)}
+    .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;padding:13px 24px;border-radius:12px;border:1px solid var(--border);cursor:pointer;transition:border-color .18s,background .18s}
+    .btn-secondary:hover{border-color:var(--muted)}
+
+    .main-wrap{max-width:1100px;margin:0 auto;padding:0 32px 80px;display:grid;grid-template-columns:1fr 300px;gap:36px;align-items:flex-start}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-top:8px}
+    .section-head h2{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.05em;display:flex;align-items:center;gap:10px}
+    .sh-bar{display:inline-block;width:6px;height:26px;border-radius:3px}
+    .ch-count{font-size:.8rem;font-weight:700;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+    .sort-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+    .sort-bar span{font-size:.78rem;color:var(--muted);font-weight:600}
+    .sort-btn{font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s}
+    .sort-btn.active{background:var(--surface2);color:var(--text);border-color:var(--muted)}
+    .chapter-list{display:flex;flex-direction:column;gap:6px}
+    .chapter-item{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;cursor:pointer;transition:border-color .18s,background .18s,transform .18s;animation:fadeUp .4s ease both;gap:16px;position:relative;overflow:hidden}
+    .chapter-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--coral);transform:scaleY(0);transform-origin:bottom;transition:transform .2s}
+    .chapter-item:hover{border-color:var(--coral);background:var(--surface2);transform:translateX(4px)}
+    .chapter-item:hover::before{transform:scaleY(1)}
+    .ch-num{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.05em;color:var(--muted2);min-width:36px;text-align:center;transition:color .18s}
+    .chapter-item:hover .ch-num{color:var(--coral)}
+    .ch-body{flex:1;min-width:0}
+    .ch-title{font-size:.93rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;transition:color .18s}
+    .chapter-item:hover .ch-title{color:var(--coral)}
+    .ch-date{font-size:.73rem;color:var(--muted2)}
+    .ch-arrow{color:var(--muted2);flex-shrink:0;transition:transform .18s,color .18s}
+    .chapter-item:hover .ch-arrow{transform:translateX(4px);color:var(--coral)}
+    .ch-new{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:var(--coral-glow);color:var(--coral);border:1px solid rgba(255,92,92,.3);padding:2px 8px;border-radius:6px;flex-shrink:0}
+
+    .sidebar{display:flex;flex-direction:column;gap:24px}
+    .sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;animation:fadeUp .5s .2s ease both}
+    .sidebar-card h3{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.06em;margin-bottom:16px}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+    .detail-row:last-child{border-bottom:none}
+    .dr-label{color:var(--muted);font-weight:600}.dr-val{font-weight:700;text-align:right}
+    .related-book{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+    .related-book:last-child{border-bottom:none}
+    .related-book:hover{opacity:.75}
+    .rb-thumb{width:48px;height:68px;border-radius:6px;flex-shrink:0}
+    .rb-title{font-size:.85rem;font-weight:800;margin-bottom:3px}
+    .rb-genre{font-size:.7rem;color:var(--muted);margin-bottom:4px}
+    .rb-rating{font-size:.72rem;color:var(--gold)}
+    .not-found{max-width:1100px;margin:80px auto;padding:0 32px;text-align:center;color:var(--muted)}
+    .not-found h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--text);margin-bottom:10px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:900px){.book-hero{grid-template-columns:1fr}.book-cover-wrap{display:none}.main-wrap{grid-template-columns:1fr}.sidebar{display:none}nav,book-backdrop,.main-wrap{padding-left:16px;padding-right:16px}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">Libravon</a>
+  <a href="index.html" class="nav-back">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Back to Browse
+  </a>
+</nav>
+<div id="app"></div>
+
+<!-- Single source of truth -->
+<script src="books.js"></script>
+<script>
+const GENRE_COLORS={Fantasy:{color:'#a78bfa',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.3)'},Adventure:{color:'#fbbf24',bg:'rgba(251,191,36,.12)',border:'rgba(251,191,36,.3)'},Romance:{color:'#f472b6',bg:'rgba(244,114,182,.12)',border:'rgba(244,114,182,.3)'},'Sci-Fi':{color:'#3eceff',bg:'rgba(62,206,255,.12)',border:'rgba(62,206,255,.3)'},Thriller:{color:'#ff5c5c',bg:'rgba(255,92,92,.12)',border:'rgba(255,92,92,.3)'},'Slice of Life':{color:'#a8ff3e',bg:'rgba(168,255,62,.12)',border:'rgba(168,255,62,.3)'},Action:{color:'#ff8c42',bg:'rgba(255,140,66,.12)',border:'rgba(255,140,66,.3)'},Drama:{color:'#60a5fa',bg:'rgba(96,165,250,.12)',border:'rgba(96,165,250,.3)'},Historical:{color:'#ffd84d',bg:'rgba(255,216,77,.12)',border:'rgba(255,216,77,.3)'}};
+function gs(g){return GENRE_COLORS[g]||{color:'#888',bg:'rgba(136,136,136,.1)',border:'rgba(136,136,136,.25)'};}
+let sortOrder='asc';
+
+function render(){
+  const bookId=new URLSearchParams(window.location.search).get('id');
+  const book=getBookById(bookId);
+  const app=document.getElementById('app');
+  if(!book){
+    app.innerHTML=`<div class="not-found"><div style="font-size:4rem;margin-bottom:16px">📭</div><h2>Book Not Found</h2><p>The book you're looking for doesn't exist.</p><a href="index.html" style="display:inline-block;margin-top:20px;background:var(--coral);color:white;padding:12px 24px;border-radius:10px;font-weight:800">← Back to Browse</a></div>`;
+    return;
+  }
+  document.title=`${book.title} — Libravon`;
+  const coverHTML=book.cover?`<img src="${book.cover}" alt="${book.title}"/>`:`<div class="cover-ph-main" style="background:${book.coverColor}"><span>${book.title}</span></div>`;
+  const genrePills=book.genre.map(g=>{const s=gs(g);return`<span class="genre-pill" style="color:${s.color};background:${s.bg};border-color:${s.border}">${g}</span>`;}).join('');
+  const related=BOOKS_DATA.filter(b=>b.id!==book.id&&b.genre.some(g=>book.genre.includes(g))).slice(0,3);
+
+  app.innerHTML=`
+    <div class="book-backdrop">
+      <div class="backdrop-blur" style="background:${book.cover?`url(${book.cover})`:book.coverColor}"></div>
+      <div class="backdrop-overlay"></div>
+      <div class="book-hero">
+        <div class="book-cover-wrap">${coverHTML}</div>
+        <div class="book-info-col">
+          <div class="breadcrumb"><a href="index.html">Home</a><span>›</span><a href="index.html?genre=${encodeURIComponent(book.genre[0])}">${book.genre[0]}</a><span>›</span><span style="color:var(--text)">${book.title}</span></div>
+          <div class="book-genres-row">${genrePills}</div>
+          <h1 class="book-title">${book.title}</h1>
+          <p class="book-author">by <span>${book.author}</span></p>
+          <div class="stats-row">
+            <div class="stat-chip"><span>⭐</span><span class="sc-val">${book.rating||'New'}</span><span class="sc-lbl">Rating</span></div>
+            <div class="stat-chip"><span>👁</span><span class="sc-val">${formatViews(book.views)}</span><span class="sc-lbl">Views</span></div>
+            <div class="stat-chip"><span>📖</span><span class="sc-val">${book.chapters.length}</span><span class="sc-lbl">Chapters</span></div>
+            <span class="status-pill ${book.status.toLowerCase()}">${book.status}</span>
+          </div>
+          <p class="book-desc">${book.description}</p>
+          <div class="tags-row">${book.tags.map(t=>`<span class="tag-chip">#${t}</span>`).join('')}</div>
+          <div class="cta-row">
+            <a href="${buildReaderURL(book.id,book.chapters[0].id)}" class="btn-primary">▶ Start Reading</a>
+            <a href="${buildReaderURL(book.id,book.chapters[book.chapters.length-1].id)}" class="btn-secondary">⚡ Latest Chapter</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="main-wrap">
+      <div>
+        <div class="section-head">
+          <h2><span class="sh-bar" style="background:var(--coral)"></span> Chapters</h2>
+          <span class="ch-count">${book.chapters.length} total</span>
+        </div>
+        <div class="sort-bar">
+          <span>Sort:</span>
+          <button class="sort-btn active" id="sort-asc" onclick="setSort('asc',\`${book.id}\`)">Oldest First</button>
+          <button class="sort-btn" id="sort-desc" onclick="setSort('desc',\`${book.id}\`)">Newest First</button>
+        </div>
+        <div class="chapter-list" id="chapter-list">${renderChapters(book,'asc')}</div>
+      </div>
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h3>📋 Details</h3>
+          <div class="detail-row"><span class="dr-label">Author</span><span class="dr-val">${book.author}</span></div>
+          <div class="detail-row"><span class="dr-label">Status</span><span class="dr-val" style="color:${book.status==='Ongoing'?'var(--lime)':'var(--sky)'}">${book.status}</span></div>
+          <div class="detail-row"><span class="dr-label">Genre</span><span class="dr-val">${book.genre.join(', ')}</span></div>
+          <div class="detail-row"><span class="dr-label">Chapters</span><span class="dr-val">${book.chapters.length}</span></div>
+          <div class="detail-row"><span class="dr-label">Views</span><span class="dr-val">${formatViews(book.views)}</span></div>
+          <div class="detail-row"><span class="dr-label">Rating</span><span class="dr-val" style="color:var(--gold)">★ ${book.rating||'N/A'}</span></div>
+          <div class="detail-row"><span class="dr-label">Added</span><span class="dr-val">${formatDate(book.dateAdded)}</span></div>
+        </div>
+        ${related.length?`<div class="sidebar-card"><h3>📚 You May Also Like</h3>${related.map(b=>`<a href="${buildBookURL(b.id)}" class="related-book"><div class="rb-thumb" style="background:${b.coverColor};border-radius:6px"></div><div><div class="rb-title">${b.title}</div><div class="rb-genre">${b.genre[0]}</div><div class="rb-rating">★ ${b.rating||'New'} · ${b.chapters.length} ch</div></div></a>`).join('')}</div>`:''}
+      </aside>
+    </div>`;
+}
+
+function renderChapters(book,order){
+  const chs=order==='desc'?[...book.chapters].reverse():book.chapters;
+  const newestId=book.chapters[book.chapters.length-1].id;
+  return chs.map((ch,i)=>{
+    const num=order==='desc'?book.chapters.length-i:i+1;
+    return`<a href="${buildReaderURL(book.id,ch.id)}" class="chapter-item" style="animation-delay:${i*.04}s">
+      <div class="ch-num">${String(num).padStart(2,'0')}</div>
+      <div class="ch-body"><div class="ch-title">${ch.title}</div><div class="ch-date">${formatDate(ch.datePosted)}</div></div>
+      ${ch.id===newestId?'<span class="ch-new">New</span>':''}
+      <svg class="ch-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>`;
+  }).join('');
+}
+function setSort(order,bookId){
+  const book=getBookById(bookId);if(!book)return;
+  document.getElementById('chapter-list').innerHTML=renderChapters(book,order);
+  document.getElementById('sort-asc').classList.toggle('active',order==='asc');
+  document.getElementById('sort-desc').classList.toggle('active',order==='desc');
+}
+render();
+</script>
+</body>
+</html>

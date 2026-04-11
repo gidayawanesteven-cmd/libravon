@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Libravon — Reader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0d0d0d;--surface:#161616;--surface2:#1f1f1f;--border:#2a2a2a;--text:#f0f0f0;--muted:#888;--muted2:#555;--coral:#ff5c5c;--coral-glow:rgba(255,92,92,0.18);--lime:#a8ff3e;--sky:#3eceff;--gold:#ffd84d;--radius:12px;--reader-bg:#0d0d0d;--reader-surface:#161616;--reader-text:#e0d8c8;--reader-muted:#777;--reader-border:#2a2a2a;--reader-font:'Lora',serif;--reader-size:1.08rem;--reader-lh:1.95;--reader-width:680px}
+    html{scroll-behavior:smooth}
+    body{font-family:'Nunito',sans-serif;background:var(--reader-bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+    a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--reader-bg)}::-webkit-scrollbar-thumb{background:var(--reader-border);border-radius:2px}
+
+    .top-nav{position:sticky;top:0;z-index:200;height:56px;background:rgba(13,13,13,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.08em;background:linear-gradient(90deg,var(--coral),var(--gold),var(--lime));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0}
+    .nav-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
+    .nav-bc{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);overflow:hidden;flex:1;min-width:0}
+    .nav-bc a{color:var(--muted);white-space:nowrap;transition:color .15s}.nav-bc a:hover{color:var(--coral)}
+    .nav-bc .bc-sep{color:var(--muted2);flex-shrink:0}
+    .nav-bc .bc-cur{color:var(--text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+    .nav-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s}
+    .nav-btn:hover{border-color:var(--coral);color:var(--coral);background:var(--coral-glow)}
+    .nav-btn svg{width:16px;height:16px}
+
+    .progress-bar{position:fixed;top:56px;left:0;right:0;height:3px;background:var(--border);z-index:199}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--coral),var(--gold));width:0%;transition:width .1s linear;border-radius:0 2px 2px 0}
+
+    .settings-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+    .settings-overlay.open{display:block}
+    .settings-panel{position:fixed;top:64px;right:16px;width:300px;z-index:301;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 16px 48px rgba(0,0,0,.6);display:none}
+    .settings-panel.open{display:block;animation:panelIn .2s ease both}
+    @keyframes panelIn{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .panel-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.08em;color:var(--text);margin-bottom:16px}
+    .setting-group{margin-bottom:18px}
+    .setting-label{font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+    .theme-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .theme-btn{padding:10px 6px;border-radius:8px;border:2px solid var(--border);font-size:.72rem;font-weight:700;cursor:pointer;text-align:center;transition:border-color .15s;background:var(--surface2);color:var(--muted)}
+    .theme-btn.active{border-color:var(--coral);color:var(--text)}
+    .theme-btn .swatch{width:28px;height:28px;border-radius:50%;margin:0 auto 5px;border:1px solid rgba(255,255,255,.1)}
+    .size-row,.width-row{display:flex;align-items:center;gap:10px}
+    .size-row span{font-size:.85rem;color:var(--muted);min-width:28px;text-align:center}
+    .slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer}
+    .slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--coral);border:2px solid var(--bg);box-shadow:0 0 0 2px var(--coral)}
+    .font-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .font-btn{padding:10px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center;font-size:.88rem;color:var(--muted);transition:all .15s}
+    .font-btn.active{border-color:var(--coral);color:var(--text)}
+    .width-row span{font-size:.8rem;color:var(--muted)}
+
+    .ch-nav{max-width:calc(var(--reader-width) + 80px);margin:28px auto 0;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .ch-nav-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;border:1px solid var(--reader-border);background:var(--reader-surface);color:var(--reader-muted);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap}
+    .ch-nav-btn:hover:not(:disabled){border-color:var(--coral);color:var(--coral);background:var(--coral-glow)}
+    .ch-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+    .ch-nav-btn svg{width:14px;height:14px}
+    .ch-indicator{text-align:center;flex:1;min-width:0}
+    .ci-num{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.1em;color:var(--reader-muted)}
+    .ci-title{font-size:.82rem;font-weight:700;color:var(--reader-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .reader-wrap{max-width:calc(var(--reader-width) + 80px);margin:0 auto;padding:40px 20px 60px}
+    .chapter-header{max-width:var(--reader-width);margin:0 auto 40px;padding-bottom:28px;border-bottom:1px solid var(--reader-border);animation:fadeIn .5s ease both}
+    .ch-book{font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-bottom:8px}
+    .ch-num-label{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.15em;color:var(--reader-muted);margin-bottom:6px}
+    .ch-title-label{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3rem);letter-spacing:.02em;line-height:1;color:var(--reader-text);margin-bottom:14px}
+    .ch-meta{font-size:.78rem;color:var(--reader-muted);display:flex;gap:16px;flex-wrap:wrap}
+
+    #chapter-content{max-width:var(--reader-width);margin:0 auto;font-family:var(--reader-font);font-size:var(--reader-size);line-height:var(--reader-lh);color:var(--reader-text);animation:fadeIn .6s .1s ease both;transition:font-size .2s,color .3s}
+    #chapter-content p{margin-bottom:1.5em;text-align:justify}
+    #chapter-content p:first-child::first-letter{font-size:3.6em;font-family:'Bebas Neue',sans-serif;float:left;line-height:.75;margin:.06em .12em 0 0;color:var(--coral)}
+    #chapter-content h2{font-family:'Bebas Neue',sans-serif;font-size:1.6em;color:var(--reader-text);margin:2em 0 .8em}
+    #chapter-content blockquote{border-left:3px solid var(--coral);padding:.8em 0 .8em 1.4em;margin:1.8em 0;font-style:italic;color:var(--reader-muted)}
+    #chapter-content hr{border:none;text-align:center;margin:2.5em 0;color:var(--reader-muted);font-size:1.2em;letter-spacing:.4em}
+    #chapter-content hr::before{content:'· · ·'}
+
+    .skeleton{max-width:var(--reader-width);margin:0 auto}
+    .skel-line{height:1em;border-radius:4px;background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:.9em}
+    @keyframes shimmer{to{background-position:-200% 0}}
+
+    .chapter-end{max-width:var(--reader-width);margin:60px auto 0;padding-top:40px;border-top:1px solid var(--reader-border);text-align:center}
+    .end-dec{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.35em;color:var(--reader-muted);margin-bottom:20px}
+    .end-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--reader-text);margin-bottom:8px}
+    .end-sub{font-size:.88rem;color:var(--reader-muted);margin-bottom:28px}
+    .end-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+    .end-btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:white;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;padding:13px 28px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 6px 24px rgba(255,92,92,.35);transition:transform .18s}
+    .end-btn-p:hover{transform:translateY(-2px)}
+    .end-btn-s{display:inline-flex;align-items:center;gap:8px;background:var(--reader-surface);color:var(--reader-text);font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;padding:13px 22px;border-radius:12px;border:1px solid var(--reader-border);cursor:pointer;transition:border-color .18s}
+    .end-btn-s:hover{border-color:var(--muted)}
+    .end-final{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:20px;padding:40px;margin-top:40px}
+    .ef-badge{display:inline-block;background:var(--coral-glow);color:var(--coral);border:1px solid rgba(255,92,92,.3);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px}
+    .end-final h3{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--text);margin-bottom:8px}
+    .end-final p{font-size:.9rem;color:var(--muted);margin-bottom:20px}
+
+    .scroll-top{position:fixed;bottom:28px;right:24px;z-index:100;width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s,border-color .15s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+    .scroll-top.visible{opacity:1;pointer-events:all}
+    .scroll-top:hover{border-color:var(--coral);color:var(--coral)}
+    .scroll-top svg{width:16px;height:16px}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+    body.theme-dark{--reader-bg:#0d0d0d;--reader-surface:#161616;--reader-text:#e0d8c8;--reader-muted:#777;--reader-border:#2a2a2a}
+    body.theme-sepia{--reader-bg:#1c1510;--reader-surface:#251e17;--reader-text:#e8d9be;--reader-muted:#8a7a60;--reader-border:#3a3028}
+    body.theme-light{--reader-bg:#f5f0e8;--reader-surface:#ede8de;--reader-text:#2a2420;--reader-muted:#7a7060;--reader-border:#d8d0c0}
+    body.theme-light .top-nav{background:rgba(245,240,232,0.92);border-bottom-color:#d8d0c0}
+    body.theme-light .nav-btn{background:#ede8de;border-color:#d8d0c0;color:#7a7060}
+    body.theme-light .settings-panel{background:#ede8de;border-color:#d8d0c0}
+
+    @media(max-width:640px){.nav-bc{display:none}.btn-label{display:none}.settings-panel{left:8px;right:8px;width:auto}}
+  </style>
+</head>
+<body class="theme-dark">
+<nav class="top-nav">
+  <a href="index.html" class="nav-logo">Libravon</a>
+  <div class="nav-divider"></div>
+  <div class="nav-bc" id="nav-bc"></div>
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="toggleSettings()" title="Settings">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+    <a class="nav-btn" id="back-btn" title="Back to book">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+    </a>
+  </div>
+</nav>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+<div class="settings-overlay" id="settings-overlay" onclick="toggleSettings()"></div>
+<div class="settings-panel" id="settings-panel">
+  <div class="panel-title">⚙ Reading Settings</div>
+  <div class="setting-group">
+    <div class="setting-label">Theme</div>
+    <div class="theme-options">
+      <button class="theme-btn active" id="theme-dark" onclick="setTheme('dark')"><div class="swatch" style="background:#0d0d0d"></div>Dark</button>
+      <button class="theme-btn" id="theme-sepia" onclick="setTheme('sepia')"><div class="swatch" style="background:#1c1510"></div>Sepia</button>
+      <button class="theme-btn" id="theme-light" onclick="setTheme('light')"><div class="swatch" style="background:#f5f0e8;border-color:#d8d0c0"></div>Light</button>
+    </div>
+  </div>
+  <div class="setting-group">
+    <div class="setting-label">Font Size</div>
+    <div class="size-row">
+      <span style="font-size:.75rem">A</span>
+      <input type="range" class="slider" id="size-slider" min="14" max="24" value="17" oninput="setFontSize(this.value)"/>
+      <span style="font-size:1.1rem">A</span>
+    </div>
+  </div>
+  <div class="setting-group">
+    <div class="setting-label">Font</div>
+    <div class="font-options">
+      <button class="font-btn active" id="font-lora" onclick="setFont('lora')" style="font-family:'Lora',serif">Serif</button>
+      <button class="font-btn" id="font-nunito" onclick="setFont('nunito')" style="font-family:'Nunito',sans-serif">Sans</button>
+    </div>
+  </div>
+  <div class="setting-group">
+    <div class="setting-label">Width</div>
+    <div class="width-row">
+      <span>Narrow</span>
+      <input type="range" class="slider" id="width-slider" min="480" max="860" value="680" oninput="setWidth(this.value)" style="flex:1;margin:0 8px"/>
+      <span>Wide</span>
+    </div>
+  </div>
+</div>
+
+<main id="reader-main"></main>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+</button>
+
+<!-- Single source of truth -->
+<script src="books.js"></script>
+<script>
+const params=new URLSearchParams(window.location.search);
+const bookId=params.get('book'), chapterId=params.get('chapter');
+const book=getBookById(bookId);
+let chapterIndex,chapter,prevChapter,nextChapter;
+if(book){
+  chapterIndex=book.chapters.findIndex(c=>c.id===chapterId);
+  chapter=book.chapters[chapterIndex]||null;
+  prevChapter=chapterIndex>0?book.chapters[chapterIndex-1]:null;
+  nextChapter=chapterIndex<book.chapters.length-1?book.chapters[chapterIndex+1]:null;
+}
+
+function navBtn(ch,dir){
+  if(!ch)return`<button class="ch-nav-btn" disabled><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="${dir==='prev'?'M15 19l-7-7 7-7':'M9 5l7 7-7 7'}"/></svg><span class="btn-label">${dir==='prev'?'First Chapter':'Latest'}</span></button>`;
+  const num=dir==='prev'?chapterIndex:chapterIndex+2;
+  return`<a href="${buildReaderURL(book.id,ch.id)}" class="ch-nav-btn">${dir==='prev'?`<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg><span class="btn-label">Ch.${num} · ${ch.title}</span>`:``}${dir==='next'?`<span class="btn-label">Ch.${num} · ${ch.title}</span><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`:``}</a>`;
+}
+
+function renderShell(){
+  if(!book||!chapter){
+    document.getElementById('reader-main').innerHTML=`<div style="max-width:600px;margin:80px auto;text-align:center;color:var(--muted);padding:0 20px"><div style="font-size:4rem;margin-bottom:16px">📭</div><h2 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--text);margin-bottom:10px">Chapter Not Found</h2><p>Check the URL or go back to browse.</p><a href="index.html" style="display:inline-block;margin-top:20px;background:var(--coral);color:white;padding:12px 24px;border-radius:10px;font-weight:800">← Browse</a></div>`;
+    return;
+  }
+  document.title=`${chapter.title} — ${book.title} — Libravon`;
+  document.getElementById('back-btn').href=buildBookURL(book.id);
+  document.getElementById('nav-bc').innerHTML=`<a href="index.html">Home</a><span class="bc-sep">›</span><a href="${buildBookURL(book.id)}">${book.title}</a><span class="bc-sep">›</span><span class="bc-cur">Ch.${chapterIndex+1} — ${chapter.title}</span>`;
+
+  const indicator=`<div class="ch-indicator"><div class="ci-num">CHAPTER ${chapterIndex+1} OF ${book.chapters.length}</div><div class="ci-title">${chapter.title}</div></div>`;
+  const endSection=nextChapter
+    ?`<div class="chapter-end"><div class="end-dec">— End of Chapter ${chapterIndex+1} —</div><h2 class="end-title">Up Next</h2><p class="end-sub">Chapter ${chapterIndex+2} · ${nextChapter.title}</p><div class="end-actions"><a href="${buildReaderURL(book.id,nextChapter.id)}" class="end-btn-p">Continue Reading →</a><a href="${buildBookURL(book.id)}" class="end-btn-s">📋 Chapter List</a></div></div>`
+    :`<div class="chapter-end"><div class="end-final"><div class="ef-badge">✦ You're all caught up</div><h3>${book.title}</h3><p>You've reached the latest chapter. Check back soon!</p><div class="end-actions"><a href="${buildBookURL(book.id)}" class="end-btn-p">📋 Back to Book</a><a href="index.html" class="end-btn-s">🔍 Discover More</a></div></div></div>`;
+
+  document.getElementById('reader-main').innerHTML=`
+    <div class="ch-nav">${navBtn(prevChapter,'prev')} ${indicator} ${navBtn(nextChapter,'next')}</div>
+    <div class="reader-wrap">
+      <div class="chapter-header">
+        <div class="ch-book">${book.title}</div>
+        <div class="ch-num-label">CHAPTER ${chapterIndex+1}</div>
+        <h1 class="ch-title-label">${chapter.title}</h1>
+        <div class="ch-meta"><span>📅 ${formatDate(chapter.datePosted)}</span><span>✍ ${book.author}</span></div>
+      </div>
+      <div id="chapter-content">
+        <div class="skeleton">${Array.from({length:12},(_,i)=>`<div class="skel-line" style="width:${i%4===3?'60%':'100%'};animation-delay:${i*.07}s"></div>`).join('')}</div>
+      </div>
+      ${endSection}
+    </div>
+    <div class="ch-nav" style="margin-top:0;margin-bottom:48px">${navBtn(prevChapter,'prev')} ${indicator} ${navBtn(nextChapter,'next')}</div>`;
+
+  loadContent();
+}
+
+function loadContent(){
+  // If admin-added chapter has inline content, use it directly
+  if(chapter.content && chapter.content.trim()){
+    setTimeout(()=>{
+      const el=document.getElementById('chapter-content');
+      if(el){ el.innerHTML=chapter.content.split('\n\n').map(p=>`<p>${p}</p>`).join(''); applyPrefs(); }
+    },400);
+    return;
+  }
+  // Otherwise fetch the HTML file (for manually uploaded chapters)
+  fetch(chapter.file)
+    .then(r=>{if(!r.ok)throw new Error();return r.text();})
+    .then(html=>{
+      const el=document.getElementById('chapter-content');
+      if(el){el.innerHTML=html;applyPrefs();}
+    })
+    .catch(()=>{
+      // Demo fallback — remove in production
+      setTimeout(()=>{
+        const el=document.getElementById('chapter-content');
+        if(el){el.innerHTML=`<p>The chapter file for <strong>${chapter.title}</strong> has not been uploaded yet.</p><p>Place your chapter HTML file at: <code>${chapter.file}</code></p><p>Or use the Admin Panel to add chapter content directly when publishing the book.</p>`;applyPrefs();}
+      },500);
+    });
+}
+
+// Progress bar + scroll-to-top
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100;
+  const fill=document.getElementById('progress-fill');
+  const btn=document.getElementById('scroll-top');
+  if(fill)fill.style.width=pct+'%';
+  if(btn)btn.classList.toggle('visible',window.scrollY>300);
+},{passive:true});
+
+// Settings
+function toggleSettings(){document.getElementById('settings-panel').classList.toggle('open');document.getElementById('settings-overlay').classList.toggle('open');}
+function setTheme(t){document.body.className=`theme-${t}`;['dark','sepia','light'].forEach(x=>document.getElementById(`theme-${x}`).classList.toggle('active',x===t));localStorage.setItem('lv-theme',t);}
+function setFontSize(v){const el=document.getElementById('chapter-content');if(el)el.style.fontSize=v+'px';localStorage.setItem('lv-size',v);}
+function setFont(f){const el=document.getElementById('chapter-content');if(el)el.style.fontFamily=f==='lora'?"'Lora',serif":"'Nunito',sans-serif";['lora','nunito'].forEach(x=>document.getElementById(`font-${x}`).classList.toggle('active',x===f));localStorage.setItem('lv-font',f);}
+function setWidth(v){document.documentElement.style.setProperty('--reader-width',v+'px');localStorage.setItem('lv-width',v);}
+function applyPrefs(){
+  const s=localStorage.getItem('lv-size'),f=localStorage.getItem('lv-font'),w=localStorage.getItem('lv-width');
+  if(s){setFontSize(s);const sl=document.getElementById('size-slider');if(sl)sl.value=s;}
+  if(f)setFont(f);
+  if(w){setWidth(w);const sl=document.getElementById('width-slider');if(sl)sl.value=w;}
+}
+function loadPrefs(){const t=localStorage.getItem('lv-theme')||'dark';setTheme(t);}
+
+// Keyboard nav
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='ArrowLeft'&&prevChapter)window.location.href=buildReaderURL(book.id,prevChapter.id);
+  if(e.key==='ArrowRight'&&nextChapter)window.location.href=buildReaderURL(book.id,nextChapter.id);
+  if(e.key==='s'||e.key==='S')toggleSettings();
+});
+
+loadPrefs();
+renderShell();
+</script>
+</body>
+</html>
