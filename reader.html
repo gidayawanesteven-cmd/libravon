@@ -165,7 +165,6 @@
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
 </button>
 
-<!-- Single source of truth -->
 <script src="books.js"></script>
 <script>
 const params=new URLSearchParams(window.location.search);
@@ -219,7 +218,6 @@ function renderShell(){
 }
 
 function loadContent(){
-  // If admin-added chapter has inline content, use it directly
   if(chapter.content && chapter.content.trim()){
     setTimeout(()=>{
       const el=document.getElementById('chapter-content');
@@ -227,7 +225,6 @@ function loadContent(){
     },400);
     return;
   }
-  // Otherwise fetch the HTML file (for manually uploaded chapters)
   fetch(chapter.file)
     .then(r=>{if(!r.ok)throw new Error();return r.text();})
     .then(html=>{
@@ -235,15 +232,13 @@ function loadContent(){
       if(el){el.innerHTML=html;applyPrefs();}
     })
     .catch(()=>{
-      // Demo fallback — remove in production
       setTimeout(()=>{
         const el=document.getElementById('chapter-content');
         if(el){el.innerHTML=`<p>The chapter file for <strong>${chapter.title}</strong> has not been uploaded yet.</p><p>Place your chapter HTML file at: <code>${chapter.file}</code></p><p>Or use the Admin Panel to add chapter content directly when publishing the book.</p>`;applyPrefs();}
       },500);
     });
 }
-
-// Progress bar + scroll-to-top
+  
 window.addEventListener('scroll',()=>{
   const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100;
   const fill=document.getElementById('progress-fill');
@@ -252,7 +247,6 @@ window.addEventListener('scroll',()=>{
   if(btn)btn.classList.toggle('visible',window.scrollY>300);
 },{passive:true});
 
-// Settings
 function toggleSettings(){document.getElementById('settings-panel').classList.toggle('open');document.getElementById('settings-overlay').classList.toggle('open');}
 function setTheme(t){document.body.className=`theme-${t}`;['dark','sepia','light'].forEach(x=>document.getElementById(`theme-${x}`).classList.toggle('active',x===t));localStorage.setItem('lv-theme',t);}
 function setFontSize(v){const el=document.getElementById('chapter-content');if(el)el.style.fontSize=v+'px';localStorage.setItem('lv-size',v);}
@@ -266,7 +260,6 @@ function applyPrefs(){
 }
 function loadPrefs(){const t=localStorage.getItem('lv-theme')||'dark';setTheme(t);}
 
-// Keyboard nav
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.key==='ArrowLeft'&&prevChapter)window.location.href=buildReaderURL(book.id,prevChapter.id);
