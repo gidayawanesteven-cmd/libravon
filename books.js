@@ -1,19 +1,4 @@
-/**
- * books.js — Libravon Central Data Store
- * ─────────────────────────────────────────────────────────
- * All books are managed through the Admin Panel.
- * Data is saved in localStorage and loaded on every page.
- *
- * HOW IT WORKS:
- *   localStorage['libravon-books'] → all books added via Admin Panel
- *   BOOKS_DATA (global array)      → live array used by all pages
- * ─────────────────────────────────────────────────────────
- */
-
-// ─── No default books — you add your own via the Admin Panel ─
 const LIBRAVON_DEFAULT_BOOKS = [];
-
-// ─── Cover Color Palette (fallback when no image uploaded) ───
 const LIBRAVON_COVER_COLORS = [
   "linear-gradient(135deg,#1a1a2e,#16213e,#0f3460,#533483)",
   "linear-gradient(135deg,#0a0a0a,#1a0533,#2d0057,#3d007a)",
@@ -26,11 +11,7 @@ const LIBRAVON_COVER_COLORS = [
   "linear-gradient(135deg,#1a0a1a,#330d33,#550f55,#881188)",
   "linear-gradient(135deg,#0d0d0d,#1a0000,#330000,#550000)",
 ];
-
-// ─── Admin Password — change this to your own ────────────────
 const LIBRAVON_ADMIN_PASSWORD = "libravon2024";
-
-// ─── Storage Helpers ─────────────────────────────────────────
 function _loadAdminBooks() {
   try { const r = localStorage.getItem('libravon-books'); return r ? JSON.parse(r) : []; }
   catch { return []; }
@@ -44,12 +25,8 @@ function _reloadBooksData() {
   BOOKS_DATA.length = 0;
   books.forEach(b => BOOKS_DATA.push(b));
 }
-
-// ─── BOOKS_DATA — live array used by all pages ───────────────
 const BOOKS_DATA = [];
 _reloadBooksData();
-
-// ─── Public Helper Functions ─────────────────────────────────
 function getAllBooks()    { return BOOKS_DATA; }
 function getBookById(id) { return BOOKS_DATA.find(b => b.id === id) || null; }
 function getAllGenres() {
@@ -76,21 +53,15 @@ function formatViews(n) {
 function formatDate(str) {
   return new Date(str).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
-
-// ─── Admin Functions ──────────────────────────────────────────
-
 function adminVerifyPassword(input) {
   return input === LIBRAVON_ADMIN_PASSWORD;
 }
-
-/** Add a new book */
 function adminAddBook(bookData) {
   if (!bookData.title?.trim())    return { success: false, message: "Title is required." };
   if (!bookData.author?.trim())   return { success: false, message: "Author is required." };
   if (!bookData.genre?.length)    return { success: false, message: "At least one genre is required." };
   if (!bookData.chapters?.length) return { success: false, message: "At least one chapter is required." };
 
-  // Generate unique ID
   const existingIds = _loadAdminBooks().map(b => b.id);
   let idNum = existingIds.length + 1;
   let newId = `book-${String(idNum).padStart(3, '0')}`;
@@ -126,7 +97,6 @@ function adminAddBook(bookData) {
   return { success: true, message: `"${book.title}" published successfully!`, book };
 }
 
-/** Add a new chapter to an existing book */
 function adminAddChapter(bookId, chapterData) {
   if (!chapterData.title?.trim())   return { success: false, message: "Chapter title is required." };
   if (!chapterData.content?.trim()) return { success: false, message: "Chapter content is required." };
@@ -139,7 +109,6 @@ function adminAddChapter(bookId, chapterData) {
   const newChNum  = book.chapters.length + 1;
   const newChId   = `chapter-${String(newChNum).padStart(2, '0')}`;
 
-  // Avoid duplicate chapter IDs
   const existingChIds = book.chapters.map(c => c.id);
   let chId = newChId;
   let chNum = newChNum;
@@ -163,7 +132,6 @@ function adminAddChapter(bookId, chapterData) {
   return { success: true, message: `Chapter "${newChapter.title}" added!`, chapter: newChapter };
 }
 
-/** Delete a chapter from a book */
 function adminDeleteChapter(bookId, chapterId) {
   const adminBooks = _loadAdminBooks();
   const bookIndex  = adminBooks.findIndex(b => b.id === bookId);
@@ -177,13 +145,10 @@ function adminDeleteChapter(bookId, chapterId) {
   _reloadBooksData();
   return { success: true, message: "Chapter removed." };
 }
-
-/** Delete an entire book */
 function adminDeleteBook(bookId) {
   _saveAdminBooks(_loadAdminBooks().filter(b => b.id !== bookId));
   _reloadBooksData();
   return { success: true, message: "Book removed." };
 }
 
-/** Get all admin-added books */
 function adminGetAddedBooks() { return _loadAdminBooks(); }
